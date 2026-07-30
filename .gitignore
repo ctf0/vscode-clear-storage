@@ -1,5 +1,7 @@
-node_modules
-yarn.lock
+out
 .history
-.DS_Store
+node_modules
 *.vsix
+.DS_Store
+package-lock.json
+yarn.lock
