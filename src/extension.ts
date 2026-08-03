@@ -5,53 +5,97 @@ import fsExtra from 'fs-extra'
 async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('extension.clearWorkSpacesStorage', async() => {
-            const path = context.storageUri?.fsPath.replace(/workspaceStorage.*/g, 'workspaceStorage')
-            await listDirectories(path)
-
-            showMsg('workspaces storage cleared')
+            try {
+                await removeSubdirectories(getWorkSpacesStoragePath(context))
+                showMsg('workspaces storage cleared')
+            } catch {
+                showMsg('Failed to clear workspaces storage')
+            }
         }),
         vscode.commands.registerCommand('extension.clearCurrentWorkSpaceStorage', async() => {
-            const path = context.storageUri?.fsPath.replace('/ctf0.clear-storage', '')
-
-            await listDirectories(path)
-
-            showMsg('current workspace storage cleared')
+            try {
+                await removeDirectory(getCurrentWorkSpaceStoragePath(context))
+                showMsg('current workspace storage cleared')
+            } catch {
+                showMsg('Failed to clear current workspace storage')
+            }
         }),
         vscode.commands.registerCommand('extension.clearGlobalStorage', async() => {
-            const path = context.globalStorageUri?.fsPath.replace(/globalStorage.*/, 'globalStorage')
-            await listDirectories(path)
-
-            showMsg('global storage cleared')
+            try {
+                await removeSubdirectories(getGlobalStoragePath(context))
+                showMsg('global storage cleared')
+            } catch {
+                showMsg('Failed to clear global storage')
+            }
         }),
-        // open
-        vscode.commands.registerCommand('extension.openWorkSpaceStorage', async() => {
-            const path = context.storageUri?.fsPath.replace('/ctf0.clear-storage', '')
-
-            await openPath(path)
+        vscode.commands.registerCommand('extension.openCurrentWorkSpaceStorage', async() => {
+            try {
+                await openPath(getCurrentWorkSpaceStoragePath(context))
+            } catch {
+                showMsg('Failed to open workspace storage')
+                await openPath(getWorkSpacesStoragePath(context))
+            }
         }),
         vscode.commands.registerCommand('extension.openGlobalStorage', async() => {
-            const path = context.globalStorageUri?.fsPath.replace(/globalStorage.*/, 'globalStorage')
-            await openPath(path)
+            await openPath(getGlobalStoragePath(context))
         }),
     )
 }
 
-async function listDirectories(rootPath) {
-    const fileNames = await fs.promises.readdir(rootPath, {withFileTypes: true})
-
-    return fileNames
-        .filter((file) => file.isDirectory())
-        .map(async({name: dir}) => {
-            await fsExtra.remove(`${rootPath}/${dir}`)
-        })
+function getWorkSpacesStoragePath(context: vscode.ExtensionContext): string | undefined {
+    return context.storageUri?.fsPath.replace(/workspaceStorage.*/g, 'workspaceStorage')
 }
 
-async function openPath(path) {
+function getCurrentWorkSpaceStoragePath(context: vscode.ExtensionContext): string | undefined {
+    return context.storageUri?.fsPath.replace(`/${context.extension.id}`, '')
+}
+
+function getGlobalStoragePath(context: vscode.ExtensionContext): string {
+    return context.globalStorageUri.fsPath.replace(/globalStorage.*/, 'globalStorage')
+}
+
+async function removeDirectory(rootPath: string | undefined) {
+    await assertPathExists(rootPath)
+
+    await fsExtra.remove(rootPath)
+}
+
+async function removeSubdirectories(rootPath: string | undefined) {
+    await assertPathExists(rootPath)
+
+    const fileNames = await fs.promises.readdir(rootPath, {withFileTypes: true})
+
+    await Promise.all(
+        fileNames
+            .filter((file) => file.isDirectory())
+            .map(({name: dir}) => fsExtra.remove(`${rootPath}/${dir}`))
+    )
+}
+
+async function openPath(path: string | undefined) {
+    await assertPathExists(path)
+
     const uri = vscode.Uri.file(path)
     await vscode.env.openExternal(uri)
 }
 
-function showMsg(msg) {
+async function assertPathExists(path: string | undefined) {
+    if (!await pathExists(path)) {
+        throw new Error('path does not exist')
+    }
+}
+
+async function pathExists(path: string | undefined) {
+    try {
+        await fs.promises.access(path)
+
+        return true
+    } catch {
+        return false
+    }
+}
+
+function showMsg(msg: string) {
     vscode.window.showInformationMessage(msg)
 }
 
