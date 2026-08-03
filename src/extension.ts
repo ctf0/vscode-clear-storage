@@ -1,40 +1,36 @@
-const vscode = require('vscode')
-const fs = require('fs')
-const fsExtra = require('fs-extra')
+import * as vscode from 'vscode'
+import fs from 'fs'
+import fsExtra from 'fs-extra'
 
-/**
- * @param {vscode.ExtensionContext} context
- */
-async function activate(context) {
+async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
-        vscode.commands.registerCommand('extension.clearWorkSpaceStorage', async() => {
-            const path = context.storagePath.replace(/workspaceStorage.*/g, 'workspaceStorage')
+        vscode.commands.registerCommand('extension.clearWorkSpacesStorage', async() => {
+            const path = context.storageUri?.fsPath.replace(/workspaceStorage.*/g, 'workspaceStorage')
             await listDirectories(path)
 
-            showMsg('workspace storage cleared')
+            showMsg('workspaces storage cleared')
         }),
-    )
+        vscode.commands.registerCommand('extension.clearCurrentWorkSpaceStorage', async() => {
+            const path = context.storageUri?.fsPath.replace('/ctf0.clear-storage', '')
 
-    context.subscriptions.push(
+            await listDirectories(path)
+
+            showMsg('current workspace storage cleared')
+        }),
         vscode.commands.registerCommand('extension.clearGlobalStorage', async() => {
-            const path = context.globalStoragePath.replace(/globalStorage.*/, 'globalStorage')
+            const path = context.globalStorageUri?.fsPath.replace(/globalStorage.*/, 'globalStorage')
             await listDirectories(path)
 
             showMsg('global storage cleared')
         }),
-    )
-
-    context.subscriptions.push(
+        // open
         vscode.commands.registerCommand('extension.openWorkSpaceStorage', async() => {
-            const path = context.storagePath.replace('/ctf0.clear-storage', '')
+            const path = context.storageUri?.fsPath.replace('/ctf0.clear-storage', '')
 
             await openPath(path)
         }),
-    )
-
-    context.subscriptions.push(
         vscode.commands.registerCommand('extension.openGlobalStorage', async() => {
-            const path = context.globalStoragePath.replace(/globalStorage.*/, 'globalStorage')
+            const path = context.globalStorageUri?.fsPath.replace(/globalStorage.*/, 'globalStorage')
             await openPath(path)
         }),
     )
@@ -43,7 +39,8 @@ async function activate(context) {
 async function listDirectories(rootPath) {
     const fileNames = await fs.promises.readdir(rootPath, {withFileTypes: true})
 
-    return fileNames.filter((file) => file.isDirectory())
+    return fileNames
+        .filter((file) => file.isDirectory())
         .map(async({name: dir}) => {
             await fsExtra.remove(`${rootPath}/${dir}`)
         })
@@ -55,7 +52,7 @@ async function openPath(path) {
 }
 
 function showMsg(msg) {
-    vscode.window.showInformationMessage(`Clear Storage: ${msg}`)
+    vscode.window.showInformationMessage(msg)
 }
 
 function deactivate() { }

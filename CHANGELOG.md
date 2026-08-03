@@ -6,4 +6,9 @@
 
 ## 0.0.3
 
-- open workspace/global storage folder
+-
+
+## 0.0.4
+
+- better naming for commands
+- add open current workspace stoarge

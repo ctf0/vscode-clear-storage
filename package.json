@@ -2,7 +2,7 @@
     "name": "clear-storage",
     "displayName": "Clear Storage",
     "description": "clear workspace & global storage",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "publisher": "ctf0",
     "repository": "https://github.com/ctf0/vscode-clear-storage",
     "engines": {
@@ -18,20 +18,29 @@
     "contributes": {
         "commands": [
             {
-                "command": "extension.clearWorkSpaceStorage",
-                "title": "Clear Storage: WorkSpaceStorage"
+                "command": "extension.clearWorkSpacesStorage",
+                "title": "Clear WorkSpacesStorage",
+                "category": "Storage"
+            },
+            {
+                "command": "extension.clearCurrentWorkSpaceStorage",
+                "title": "Clear (Current) WorkSpaceStorage",
+                "category": "Storage"
             },
             {
                 "command": "extension.clearGlobalStorage",
-                "title": "Clear Storage: GlobalStorage"
+                "title": "Clear GlobalStorage",
+                "category": "Storage"
             },
             {
                 "command": "extension.openWorkSpaceStorage",
-                "title": "Clear Storage: Open WorkSpaceStorage"
+                "title": "Open (Current) WorkSpaceStorage",
+                "category": "Storage"
             },
             {
                 "command": "extension.openGlobalStorage",
-                "title": "Clear Storage: Open GlobalStorage"
+                "title": "Open GlobalStorage",
+                "category": "Storage"
             }
         ]
     },
